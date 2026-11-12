@@ -15,17 +15,63 @@
 #include "ClassGenerator/AngelscriptReplicationShadow.h"
 #include "Shared/SoloASScriptBlueprint.h"
 
+#include "Blueprint/UserWidget.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "GameFramework/Actor.h"
+#include "UObject/UObjectGlobals.h"
                                                                                             
 
 IMPLEMENT_MODULE(FAngelscriptCodeModule, AngelscriptCode);
 
 TFunction<bool(class asCScriptFunction*)> FAngelscriptCodeModule::ShouldFunctionEmitReturnInfo;
 
+#if WITH_EDITOR
+namespace
+{
+FDelegateHandle ScriptWidgetConstructedHandle;
+
+void InitializeScriptWidgetEventFlags(UObject* Object)
+{
+	if (!IsInGameThread())
+	{
+		return;
+	}
+
+	UUserWidget* Widget = Cast<UUserWidget>(Object);
+	if (!Widget || Widget->IsTemplate() || !UASClass::GetFirstASClass(Widget->GetClass()))
+	{
+		return;
+	}
+
+	static const FName TickName(TEXT("Tick"));
+	static const FName PaintName(TEXT("OnPaint"));
+	const UClass* WidgetClass = Widget->GetClass();
+	const bool bScriptTick = Cast<UASFunction>(WidgetClass->FindFunctionByName(TickName)) != nullptr;
+	const bool bScriptPaint = Cast<UASFunction>(WidgetClass->FindFunctionByName(PaintName)) != nullptr;
+	if (!bScriptTick && !bScriptPaint)
+	{
+		return;
+	}
+
+	// UMG also copies these flags from the class defaults when duplicating widgets in the editor.
+	if (UUserWidget* Defaults = Cast<UUserWidget>(WidgetClass->GetDefaultObject(false)))
+	{
+		Defaults->bHasScriptImplementedTick |= bScriptTick;
+		Defaults->bHasScriptImplementedPaint |= bScriptPaint;
+	}
+	Widget->bHasScriptImplementedTick |= bScriptTick;
+	Widget->bHasScriptImplementedPaint |= bScriptPaint;
+}
+}
+#endif
+
 void FAngelscriptCodeModule::StartupModule()
 {
+#if WITH_EDITOR
+	ScriptWidgetConstructedHandle = FCoreUObjectDelegates::OnObjectConstructed.AddStatic(
+		&InitializeScriptWidgetEventFlags);
+#endif
                                                                                             
     SoloASBridge::SetScriptReplicationListProvider([](const UClass* Class, TArray<FLifetimeProperty>& Out)
     {
@@ -51,6 +97,10 @@ void FAngelscriptCodeModule::StartupModule()
 
 void FAngelscriptCodeModule::ShutdownModule()
 {
+#if WITH_EDITOR
+	FCoreUObjectDelegates::OnObjectConstructed.Remove(ScriptWidgetConstructedHandle);
+	ScriptWidgetConstructedHandle.Reset();
+#endif
                                                                                                           
 	BeginAngelscriptExecutionShutdown();
 	if (FAngelscriptManager::IsInitialized())

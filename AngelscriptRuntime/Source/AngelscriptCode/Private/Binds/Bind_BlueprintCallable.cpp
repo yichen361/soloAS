@@ -17,6 +17,8 @@
 
 #include "UObject/UObjectIterator.h"
 #include "UObject/UnrealType.h"
+#include "Misc/ConfigCacheIni.h"
+#include "Misc/Paths.h"
                                                                                                                         
 #include "Misc/PackageName.h"
                                                                                                                       
@@ -38,6 +40,38 @@ extern void RegisterBlueprintEventByScriptName(UClass* Class, const FString& Scr
 static const FName NAME_Function_NotInAngelscript("NotInAngelscript");
 static const FName NAME_Function_BlueprintInternalUseOnly("BlueprintInternalUseOnly");
 static const FName NAME_Function_UsableInAngelscript("UsableInAngelscript");
+
+#if !AS_USE_BIND_DB
+static bool IsBlueprintInternalFunctionAllowedByProject(const UFunction& Function)
+{
+	static const TSet<FName> AllowedClasses = []
+	{
+		TSet<FName> Result;
+		const FString ConfigPath = FPaths::ProjectConfigDir() / TEXT("AngelscriptBindSetting.ini");
+		if (FPaths::FileExists(ConfigPath))
+		{
+			FConfigFile Config;
+			Config.Read(ConfigPath);
+			TArray<FString> ClassNames;
+			Config.GetArray(TEXT("BindTheClassWithMetaBlueprintInternalUseOnly"), TEXT("ClassesToBind"), ClassNames);
+			for (const FString& ClassName : ClassNames)
+			{
+				Result.Emplace(*ClassName);
+			}
+		}
+		return Result;
+	}();
+
+	for (const UClass* Class = Function.GetOuterUClass(); Class; Class = Class->GetSuperClass())
+	{
+		if (AllowedClasses.Contains(Class->GetFName()))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+#endif
                                                                                                       
 static bool IsNativeShapeSetterExcludedFromAngelscript(const UFunction* Function)
 {
@@ -88,8 +122,10 @@ void BindBlueprintCallable(
 	if (Function->HasMetaData(NAME_Function_NotInAngelscript))
 		return;
 
-	// BlueprintInternalUseOnly functions are not bound
-	if (Function->HasMetaData(NAME_Function_BlueprintInternalUseOnly) && !Function->HasMetaData(NAME_Function_UsableInAngelscript))
+	// Explicit function metadata and project settings can opt Blueprint-internal functions into script binding.
+	if (Function->HasMetaData(NAME_Function_BlueprintInternalUseOnly)
+		&& !Function->HasMetaData(NAME_Function_UsableInAngelscript)
+		&& !IsBlueprintInternalFunctionAllowedByProject(*Function))
 		return;
 #endif
 
