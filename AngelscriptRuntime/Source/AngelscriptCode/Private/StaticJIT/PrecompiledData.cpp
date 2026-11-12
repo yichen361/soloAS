@@ -1541,8 +1541,7 @@ void FAngelscriptPrecompiledData::ProcessProperties(asITypeInfo* TypeInfo)
 	if (ObjectType->size != -1)
 		return;
 
-                                                                                                                
-		const FAngelscriptPrecompiledClass& PrecompiledClass = *ClassesLoadedFromPrecompiledData->FindChecked(TypeInfo);
+	const FAngelscriptPrecompiledClass& PrecompiledClass = *ClassesLoadedFromPrecompiledData->FindChecked(TypeInfo);
 	PrecompiledClass.ProcessProperties(*this, ObjectType);
                                                                                                               
 
