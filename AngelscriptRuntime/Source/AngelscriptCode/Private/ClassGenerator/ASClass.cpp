@@ -36,6 +36,7 @@
 #include "UObject/ScriptMacros.h"
 #include "UObject/UObjectThreadContext.h"
 
+#include "Blueprint/UserWidget.h"
 #include "GameFramework/Actor.h"
 #include "Components/ActorComponent.h"
 #include "Components/SceneComponent.h"
@@ -2818,6 +2819,17 @@ void UASClass::StaticObjectConstructor(const FObjectInitializer& Initializer)
 					ExecuteDefaultsFunctions(Object, Anchor);
 
 				RestoreScriptBlueprintDefaultProperties(Object, Anchor, BlueprintClass, BlueprintDefault);
+
+#if !WITH_EDITOR
+				// A cooked Widget Blueprint can inherit Tick from script while its defaults report no Tick.
+				if (UUserWidget* Widget = Cast<UUserWidget>(Object);
+					Widget != nullptr && !Widget->IsTemplate() && !Widget->bHasScriptImplementedTick)
+				{
+					static const FName TickName(TEXT("Tick"));
+					Widget->bHasScriptImplementedTick =
+						Cast<UASFunction>(Widget->GetClass()->FindFunctionByName(TickName)) != nullptr;
+				}
+#endif
 
 				AngelscriptRuntimeGcMirror::TrackRuntimeObjectWithMirror(
 					Object, Type);
