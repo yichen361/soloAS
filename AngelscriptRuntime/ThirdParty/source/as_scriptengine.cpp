@@ -4440,6 +4440,27 @@ void asCScriptEngine::CallObjectMethod(void *obj, void *param, int func) const
 void asCScriptEngine::CallObjectMethod(void *obj, void *param, asSSystemFunctionInterface *i, asCScriptFunction *s) const
 {
 	InScriptFunction ScopeFunction(this, s);
+#if defined(__EMSCRIPTEN__)
+	// WebAssembly indirect calls require the actual return signature of native assignment operators.
+	if (s && s->returnType.IsReference() && i->caller.IsBound() &&
+		(i->callConv == ICC_CDECL_OBJFIRST || i->callConv == ICC_THISCALL || i->callConv == ICC_VIRTUAL_THISCALL))
+	{
+		void* Arguments[3] = {obj, param, nullptr};
+		if (i->passFirstParamMetaData != asEFirstParamMetaData::None)
+		{
+			Arguments[2] = param;
+			Arguments[1] = i->passFirstParamMetaData == asEFirstParamMetaData::ScriptFunction
+				? static_cast<void*>(s) : static_cast<void*>(s->objectType);
+		}
+
+		void* IgnoredReturn = nullptr;
+		if (i->caller.type == 1)
+			i->caller.FunctionCaller(i->func, Arguments, &IgnoredReturn);
+		else
+			i->caller.MethodCaller(i->method, Arguments, &IgnoredReturn);
+		return;
+	}
+#endif
 #if defined(__GNUC__) || defined(AS_PSVITA)
 	if( i->callConv == ICC_CDECL_OBJLAST )
 	{
