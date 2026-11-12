@@ -1,6 +1,22 @@
 {
   "buildVersion": "5.8.4-0+UE5",
   "support": {
+    "5.9": {
+      "status": "experimental",
+      "supported": false,
+      "policy": "last-patch-only",
+      "minimumPatch": 0,
+      "patches": {
+        "0": {
+          "installedBuild": {
+            "changelist": 60351404,
+            "compatibleChangelist": 0,
+            "branch": "++UE5+Release-5.9"
+          },
+          "validated": false
+        }
+      }
+    },
     "5.8": {
       "policy": "track-all-patches",
       "minimumPatch": 0,

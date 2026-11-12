@@ -1124,11 +1124,13 @@ void InitializeEditorCopyPropertiesImports()
 #endif
 #if PLATFORM_WINDOWS
     MEMORY_BASIC_INFORMATION Region = {};
-    const bool bCopyResolved = VirtualQuery(reinterpret_cast<const void*>(EngineCopy), &Region, sizeof(Region)) == sizeof(Region)
-        && GetProcAddress(static_cast<HMODULE>(Region.AllocationBase), CopySymbol) == reinterpret_cast<FARPROC>(EngineCopy);
-    const bool bImportResolved = VirtualQuery(reinterpret_cast<const void*>(EngineImportObject), &Region, sizeof(Region)) == sizeof(Region)
-        && GetProcAddress(static_cast<HMODULE>(Region.AllocationBase), ImportObjectPropertiesSymbol)
-            == reinterpret_cast<FARPROC>(EngineImportObject);
+    const void* CopyAddress = reinterpret_cast<const void*>(EngineCopy);
+    const void* ImportAddress = reinterpret_cast<const void*>(EngineImportObject);
+    const bool bCopyResolved = VirtualQuery(CopyAddress, &Region, sizeof(Region)) == sizeof(Region)
+        && reinterpret_cast<const void*>(GetProcAddress(static_cast<HMODULE>(Region.AllocationBase), CopySymbol)) == CopyAddress;
+    const bool bImportResolved = VirtualQuery(ImportAddress, &Region, sizeof(Region)) == sizeof(Region)
+        && reinterpret_cast<const void*>(GetProcAddress(static_cast<HMODULE>(Region.AllocationBase), ImportObjectPropertiesSymbol))
+            == ImportAddress;
 #else
     const bool bCopyResolved = dlsym(RTLD_DEFAULT, CopySymbol + 1) == reinterpret_cast<void*>(EngineCopy);
     const bool bImportResolved = dlsym(RTLD_DEFAULT, ImportObjectPropertiesSymbol + 1)

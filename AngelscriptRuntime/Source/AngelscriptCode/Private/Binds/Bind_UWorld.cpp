@@ -5,7 +5,10 @@
 #include "AngelscriptManager.h"
 #include "AngelscriptType.h"
 #include "AngelscriptBinds.h"
+#include "SoloASEngineCompat.h"
 
+#if SOLOAS_UE_BEFORE(5, 9)
+// UE 5.9 exposes these enums through UEnum reflection.
 AS_FORCE_LINK const FAngelscriptBinds::FBind Bind_WorldType((int32)FAngelscriptBinds::EOrder::Early, []
 {
 	auto WorldType_ = FAngelscriptBinds::Enum("EWorldType");
@@ -28,6 +31,7 @@ AS_FORCE_LINK const FAngelscriptBinds::FBind Bind_NetMode((int32)FAngelscriptBin
 	NetMode_["NM_Standalone"] = ENetMode::NM_Standalone;
 	NetMode_["NM_MAX"] = ENetMode::NM_MAX;
 });
+#endif
 
 AS_FORCE_LINK const FAngelscriptBinds::FBind Bind_World((int32)FAngelscriptBinds::EOrder::Late, []
 {

@@ -8,7 +8,7 @@ public sealed class SoloASBridgeEditor : ModuleRules
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
                                                                                                                                              
         PrivateIncludePaths.Add(Path.Combine(ModuleDirectory, "Private", "Compat",
-            $"UE{Target.Version.MajorVersion}{Target.Version.MinorVersion}"));
+            UnrealBuildTool.Rules.SoloASBridgeBuildPath.EngineAdapterDirectory(Target)));
         // SOLOAS-COMPAT-END
         PrecompileForTargets = PrecompileTargetsType.Any;
         bUsePrecompiled = UnrealBuildTool.Rules.SoloASBridgeBuildPath.ShouldUsePrecompiled(this, Target, bUsePrecompiled);

@@ -2337,7 +2337,7 @@ void RegisterVectorValueConstructor(asIScriptFunction* Function, UScriptStruct* 
         UE_LOG(LogTemp, Display, TEXT("SOLOAS_TERMINAL_VECTOR_WITNESS_REJECT type=%d"), Value.TypeId);
 #else
         const auto* Canonical = UE::CoreUObject::Private::TStructOpsFakeVTableForType<FVector>::Value;
-        UE_LOG(LogTemp, Display, TEXT("SOLOAS_TERMINAL_VECTOR_WITNESS_REJECT type=%d size=%d align=%d expected_align=%d flags=%u")
+        UE_LOG(LogTemp, Display, TEXT("SOLOAS_TERMINAL_VECTOR_WITNESS_REJECT type=%d size=%d align=%d expected_align=%zu flags=%u")
             TEXT(" struct_flags=%u ops_flags=%u canonical_flags=%u construct_same=%d copy_same=%d zero=%d copy=%d")
             TEXT(" destructor=%d post_construct=%d references=%d clear=%d"),
             Value.TypeId, Type->size, Type->alignment, alignof(FVector), Value.Flags,

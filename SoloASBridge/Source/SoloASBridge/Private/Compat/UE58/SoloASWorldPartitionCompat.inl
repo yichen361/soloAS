@@ -1,7 +1,7 @@
 // Copyright Cuviss Studio. All Rights Reserved.
 #include "Editor/SoloASWorldPartitionCompat.h"
 #if WITH_EDITOR && !IS_MONOLITHIC
-// 5.8.4 WorldPartitionRuntimeCellTransformerISM.cpp:236 rejects actors with script logic.
+// WorldPartitionRuntimeCellTransformerISM rejects actors with script logic.
 // Test: SoloAS.EditorHookInstallation; SoloAS.ScriptActorCellTransformer.
 const SoloASBridge::Editor::FWorldPartitionHookTarget& SoloASBridge::Editor::GetWorldPartitionHookTarget()
 {

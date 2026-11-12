@@ -42,6 +42,7 @@
 #include "CoreMinimal.h"
 #include "UObject/Class.h"
 #include "UObject/Object.h"
+#include <bit>
                                                                                                                     
 class UClass;
 class asITypeInfo;
@@ -1302,7 +1303,7 @@ inline asSFuncPtr asFunctionPtr<asGENFUNC_t>(asGENFUNC_t func)
 {
 	// Mark this as a generic function
 	asSFuncPtr p(1);
-	p.ptr.f.func = reinterpret_cast<asFUNCTION_t>(func);
+	p.ptr.f.func = std::bit_cast<asFUNCTION_t>(func);
 	return p;
 }
 

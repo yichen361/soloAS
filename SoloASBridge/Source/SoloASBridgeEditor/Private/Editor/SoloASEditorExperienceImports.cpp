@@ -1225,8 +1225,8 @@ int32 RebindWindowsImage(uint8* Base, const FString& ImageName)
             }
 
             HMODULE ProviderModule = GetModuleHandleA(Spec->Provider);
-            FARPROC OriginalAddress = ProviderModule != nullptr
-                ? GetProcAddress(ProviderModule, Spec->WindowsSymbol) : nullptr;
+            void* OriginalAddress = ProviderModule != nullptr
+                ? reinterpret_cast<void*>(GetProcAddress(ProviderModule, Spec->WindowsSymbol)) : nullptr;
             if (OriginalAddress == nullptr)
             {
                 WarnOnce(TEXT("a target import symbol is absent from its provider"));
@@ -1243,7 +1243,7 @@ int32 RebindWindowsImage(uint8* Base, const FString& ImageName)
             void** Slot = reinterpret_cast<void**>(Base + SlotRva);
             const bool bWasInstalled = InstalledImports.Contains(Slot);
             const bool bApplied = ApplySlot(Base, ImageName, Slot, *Spec,
-                reinterpret_cast<void*>(OriginalAddress), false, TEXT("IAT"));
+                OriginalAddress, false, TEXT("IAT"));
             Changed += bApplied ? 1 : 0;
             if (bApplied) InstalledImportKinds |= 1u << static_cast<uint8>(Spec->Id);
             if (bApplied && !bWasInstalled && Spec->Id == EExperienceImport::LinkerDetach)

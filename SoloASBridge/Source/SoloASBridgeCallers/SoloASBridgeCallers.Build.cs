@@ -31,15 +31,17 @@ public abstract class SoloASNativeCallerRules : ModuleRules
         // Typed value callers use the native types' exported constructors and inline dependencies.
         PrivateDependencyModuleNames.AddRange(new[] { "GameplayTags", "MovieScene", "Chaos", "SoloASBridge", "Projects" });
                                                                                                                                              
-        if (Target.Version.MajorVersion == 5 && Target.Version.MinorVersion == 8)
+        if (Target.Version.MajorVersion == 5 && Target.Version.MinorVersion >= 8)
         {
-            // These reflected APIs live in private headers in the installed 5.8 SDK.
+            // These reflected APIs live in private headers in the installed SDK.
             // No engine implementation is compiled; the caller still targets the original C++ function.
             if (new[] { "SlateRHIRenderer", "Niagara", "PCG", "UnrealEd", "MediaStream",
                 "ModelViewViewModelEditor", "AvalancheModifiers", "DynamicMaterialEditor", "Text3D" }.Contains(NativeModule))
                 PrivateIncludePaths.Add(Path.Combine(GetModuleDirectory(NativeModule), "Private"));
-            // 5.8's reflected array-mesh API uses an Internal DataInterface header.
+            // The reflected array-mesh API uses an Internal DataInterface header.
             if (NativeModule == "Niagara") PrivateIncludePaths.Add(Path.Combine(GetModuleDirectory(NativeModule), "Internal"));
+            if (NativeModule == "PCG" && Target.Version.MinorVersion >= 9)
+                PrivateIncludePaths.Add(Path.Combine(GetModuleDirectory(NativeModule), "Internal"));
         }
         // SOLOAS-COMPAT-END
                                                                                                        

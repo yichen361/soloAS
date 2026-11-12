@@ -1867,8 +1867,8 @@ FString FStaticJITContext::ReferenceTypeSize(asITypeInfo* TypeInfo)
 
 			if (ComputedOffsets->bCanHardcodeSize)
 			{
-				SizeExpr = FString::Printf(TEXT("%d"), ComputedOffsets->HardcodedSize);
-				AlignmentExpr = FString::Printf(TEXT("%d"), ComputedOffsets->HardcodedAlignment);
+				SizeExpr = FString::Printf(TEXT("%zu"), ComputedOffsets->HardcodedSize);
+				AlignmentExpr = FString::Printf(TEXT("%zu"), ComputedOffsets->HardcodedAlignment);
 			}
 			else if (ComputedOffsets->bHasComputedSize)
 			{
@@ -1919,8 +1919,8 @@ FString FStaticJITContext::ReferenceTypeAlignment(asITypeInfo* TypeInfo)
 
 			if (ComputedOffsets->bCanHardcodeSize)
 			{
-				SizeExpr = FString::Printf(TEXT("%d"), ComputedOffsets->HardcodedSize);
-				AlignmentExpr = FString::Printf(TEXT("%d"), ComputedOffsets->HardcodedAlignment);
+				SizeExpr = FString::Printf(TEXT("%zu"), ComputedOffsets->HardcodedSize);
+				AlignmentExpr = FString::Printf(TEXT("%zu"), ComputedOffsets->HardcodedAlignment);
 			}
 			else if (ComputedOffsets->bHasComputedSize)
 			{
@@ -2047,7 +2047,7 @@ FString FStaticJITContext::ReferenceGlobalVariable(void* GlobalVar)
 		auto Ref = JIT->PrecompiledData->ReferenceGlobalVariable(GlobalVar, &VarName);
 
 		if (VarName.Len() == 0)
-			VarName = FString::Printf(TEXT("%x"), GlobalVar);
+			VarName = FString::Printf(TEXT("%zx"), reinterpret_cast<SIZE_T>(GlobalVar));
 
 		// Some strings are long and shouldn't get super long variable names
 		if (VarName.Len() >= 50)
@@ -2129,7 +2129,7 @@ FString FStaticJITContext::ReferencePropertyOffset(short Offset, int TypeId)
 			FString OffsetExpr;
 			if (PropOffset->bCanHardcodeOffset)
 			{
-				OffsetExpr = FString::Printf(TEXT("%d"), PropOffset->HardcodedOffset);
+				OffsetExpr = FString::Printf(TEXT("%zu"), PropOffset->HardcodedOffset);
 			}
 			else
 			{
@@ -3426,22 +3426,22 @@ TSharedPtr<FAngelscriptStaticJIT::FComputedTypeOffsets> FAngelscriptStaticJIT::G
 					check(!PropertyComputedSize.IsEmpty() && !PropertyComputedAlignment.IsEmpty());
 					check(bPreviousPropertyAllowsHardcode);
 
-					Header->Content.Add(FString::Printf(TEXT("constexpr SIZE_T %s = Align(%d + %d, %s);\n"), *OffsetName, HardcodedSize, PreviousPropertyHardcodedSize, *PropertyComputedAlignment));
-					Header->Content.Add(FString::Printf(TEXT("constexpr SIZE_T %s = AlignmentMax(%d, %s);\n"), *AlignmentName, HardcodedAlignment, *PropertyComputedAlignment));
+					Header->Content.Add(FString::Printf(TEXT("constexpr SIZE_T %s = Align(%zu + %zu, %s);\n"), *OffsetName, HardcodedSize, PreviousPropertyHardcodedSize, *PropertyComputedAlignment));
+					Header->Content.Add(FString::Printf(TEXT("constexpr SIZE_T %s = AlignmentMax(%zu, %s);\n"), *AlignmentName, HardcodedAlignment, *PropertyComputedAlignment));
 				}
 				else if (bCanHardcodeProperty)
 				{
 					if (bPreviousPropertyAllowsHardcode)
-						Header->Content.Add(FString::Printf(TEXT("constexpr SIZE_T %s = Align(%s + %d, %d);\n"), *OffsetName, *PreviousSizeVariable, PreviousPropertyHardcodedSize, PropertyHardcodedAlignment));
+						Header->Content.Add(FString::Printf(TEXT("constexpr SIZE_T %s = Align(%s + %zu, %zu);\n"), *OffsetName, *PreviousSizeVariable, PreviousPropertyHardcodedSize, PropertyHardcodedAlignment));
 					else
-						Header->Content.Add(FString::Printf(TEXT("constexpr SIZE_T %s = Align(%s + %s, %d);\n"), *OffsetName, *PreviousSizeVariable, *PreviousPropertySizeExpression, PropertyHardcodedAlignment));
+						Header->Content.Add(FString::Printf(TEXT("constexpr SIZE_T %s = Align(%s + %s, %zu);\n"), *OffsetName, *PreviousSizeVariable, *PreviousPropertySizeExpression, PropertyHardcodedAlignment));
 
-					Header->Content.Add(FString::Printf(TEXT("constexpr SIZE_T %s = AlignmentMax(%s, %d);\n"), *AlignmentName, *PreviousAlignmentVariable, PropertyHardcodedAlignment));
+						Header->Content.Add(FString::Printf(TEXT("constexpr SIZE_T %s = AlignmentMax(%s, %zu);\n"), *AlignmentName, *PreviousAlignmentVariable, PropertyHardcodedAlignment));
 				}
 				else
 				{
 					if (bPreviousPropertyAllowsHardcode)
-						Header->Content.Add(FString::Printf(TEXT("constexpr SIZE_T %s = Align(%s + %d, %s);\n"), *OffsetName, *PreviousSizeVariable, PreviousPropertyHardcodedSize, *PropertyComputedAlignment));
+						Header->Content.Add(FString::Printf(TEXT("constexpr SIZE_T %s = Align(%s + %zu, %s);\n"), *OffsetName, *PreviousSizeVariable, PreviousPropertyHardcodedSize, *PropertyComputedAlignment));
 					else
 						Header->Content.Add(FString::Printf(TEXT("constexpr SIZE_T %s = Align(%s + %s, %s);\n"), *OffsetName, *PreviousSizeVariable, *PreviousPropertySizeExpression, *PropertyComputedAlignment));
 
@@ -3483,7 +3483,7 @@ TSharedPtr<FAngelscriptStaticJIT::FComputedTypeOffsets> FAngelscriptStaticJIT::G
 				Header->Content.Add(FString::Printf(TEXT("constexpr SIZE_T %s = %s;\n"), *AlignmentName, *PreviousAlignmentVariable));
 
 				if (bPreviousPropertyAllowsHardcode)
-					Header->Content.Add(FString::Printf(TEXT("constexpr SIZE_T %s = Align(%s + %d, %s);\n"), *SizeName, *PreviousSizeVariable, PreviousPropertyHardcodedSize, *AlignmentName));
+					Header->Content.Add(FString::Printf(TEXT("constexpr SIZE_T %s = Align(%s + %zu, %s);\n"), *SizeName, *PreviousSizeVariable, PreviousPropertyHardcodedSize, *AlignmentName));
 				else
 					Header->Content.Add(FString::Printf(TEXT("constexpr SIZE_T %s = Align(%s + %s, %s);\n"), *SizeName, *PreviousSizeVariable, *PreviousPropertySizeExpression, *AlignmentName));
 

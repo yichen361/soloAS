@@ -111,7 +111,7 @@ void FAngelscriptType::Register(TSharedRef<FAngelscriptType> Type)
 		}
 		else
 		{
-			UE_LOG(Angelscript, Error, TEXT("Angelscript type %s is bound to Data 0x%x that already has a binding!"),
+			UE_LOG(Angelscript, Error, TEXT("Angelscript type %s is bound to Data %p that already has a binding!"),
 				*AngelscriptName, Data);
 			ensure(false);
 		}

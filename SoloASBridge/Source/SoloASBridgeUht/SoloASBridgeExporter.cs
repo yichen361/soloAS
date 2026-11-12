@@ -412,7 +412,7 @@ public static class SoloASBridgeExporter
         ushort functionBits = scriptCallable ? GetNativeFunctionTraitBits(worldContext != null) : (ushort)0;
         if (function.FunctionExportFlags.HasAnyFlags(UhtFunctionExportFlags.CustomThunk)
             || function.FunctionFlags.HasAnyFlags(EFunctionFlags.NetRequest)
-            || ownerStruct is UhtClass { NativeInterface: not null }
+            || ownerStruct is UhtClass { ClassType: UhtClassType.Interface }
             || ownerStruct is UhtClass nativeClass && nativeClass.ClassExportFlags.HasAnyFlags(UhtClassExportFlags.NoExport)
             || function.ParameterProperties.Span.ToArray().Any(parameter =>
                 parameter is UhtProperty property && (property.IsStaticArray || property is UhtInterfaceProperty)))

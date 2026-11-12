@@ -1072,11 +1072,10 @@ static FString ApplyFormatInteger(T Number, const FString& Specifier)
 	FString OutStr;
 	OutStr.Reserve(16);
 
-	UnsignedType UnsignedValue = *(UnsignedType*)&Number;
-
-	T AbsValue = Number;
-	if (!IsUnsigned && Number < 0)
-		AbsValue = -1 * Number;
+	const UnsignedType UnsignedValue = static_cast<UnsignedType>(Number);
+	const UnsignedType Magnitude = !IsUnsigned && Number < 0
+		? static_cast<UnsignedType>(UnsignedType(0) - UnsignedValue)
+		: UnsignedValue;
 
 	FFormatSpecifier Spec(Specifier);
 
@@ -1109,26 +1108,13 @@ static FString ApplyFormatInteger(T Number, const FString& Specifier)
 		// Fallthrough to 'd'
 	default:
 	case 'd':
-		if (sizeof(T) == 8)
-		{
-			if (IsUnsigned)
-				OutStr += FString::Printf(TEXT("%lu"), UnsignedValue);
-			else
-				OutStr += FString::Printf(TEXT("%ld"), AbsValue);
-		}
-		else
-		{
-			if (IsUnsigned)
-				OutStr += FString::Printf(TEXT("%u"), UnsignedValue);
-			else
-				OutStr += FString::Printf(TEXT("%d"), AbsValue);
-		}
+		OutStr += FString::Printf(TEXT("%llu"), static_cast<uint64>(Magnitude));
 	break;
 	case 'x':
-		OutStr += FString::Printf(TEXT("%x"), UnsignedValue);
+		OutStr += FString::Printf(TEXT("%llx"), static_cast<uint64>(UnsignedValue));
 	break;
 	case 'X':
-		OutStr += FString::Printf(TEXT("%X"), UnsignedValue);
+		OutStr += FString::Printf(TEXT("%llX"), static_cast<uint64>(UnsignedValue));
 	break;
 	}
 

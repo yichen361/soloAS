@@ -1,6 +1,7 @@
 #pragma once
 #include "MatrixTypes.h"
 #include "AngelscriptManager.h"
+#include "SoloASEngineCompat.h"
 #include "AngelscriptMathLibrary.generated.h"
 
 UCLASS(Meta = (ScriptName = "Math"))
@@ -90,8 +91,13 @@ public:
 			return false;
 
 		return FMath::SphereConeIntersection(
+#if SOLOAS_UE_AT_LEAST(5, 9)
+			FVector3f(Sphere.Center - ConeCenter),
+			static_cast<float>(Sphere.W), FVector3f(ConeDirection),
+#else
 			Sphere.Center - ConeCenter,
 			Sphere.W, ConeDirection,
+#endif
 			FMath::Sin(ConeAngleRadians),
 			FMath::Cos(ConeAngleRadians));
 	}

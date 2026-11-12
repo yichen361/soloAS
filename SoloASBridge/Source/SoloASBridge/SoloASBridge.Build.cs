@@ -46,6 +46,13 @@ namespace UnrealBuildTool.Rules
             // SOLOAS-COMPAT-END
         }
 
+        public static string EngineAdapterDirectory(ReadOnlyTargetRules Target)
+        {
+            int Major = Target.Version.MajorVersion;
+            int Minor = Target.Version.MinorVersion;
+            return Major == 5 && Minor == 9 ? "UE58" : $"UE{Major}{Minor}";
+        }
+
         public static bool MatchesEngineProfile(
             string ActualVersion, int ActualCompatibleChangelist,
             string MinorVersion, int MinimumPatch, int CompatibleChangelist)
@@ -167,7 +174,7 @@ public sealed class SoloASBridge : ModuleRules
 // SOLOAS-COMPAT-END
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
                                                                                                                                        
-        string SelectedCompat = $"UE{Target.Version.MajorVersion}{Target.Version.MinorVersion}";
+        string SelectedCompat = UnrealBuildTool.Rules.SoloASBridgeBuildPath.EngineAdapterDirectory(Target);
         PrivateIncludePaths.Add(Path.Combine(ModuleDirectory, "Private", "Compat", SelectedCompat));
         if (Target.Version.MajorVersion == 5 && Target.Version.MinorVersion == 4)
             PublicIncludePaths.Add(Path.Combine(ModuleDirectory, "Public", "Compat", SelectedCompat));
@@ -229,6 +236,7 @@ public sealed class SoloASBridge : ModuleRules
             6 => "4efa6c1aa8a53591a8eb09956727211336ab69050e4a708b8eb43b43deff6119",
             7 => "4efa6c1aa8a53591a8eb09956727211336ab69050e4a708b8eb43b43deff6119",
             8 => "4efa6c1aa8a53591a8eb09956727211336ab69050e4a708b8eb43b43deff6119",
+            9 => "4efa6c1aa8a53591a8eb09956727211336ab69050e4a708b8eb43b43deff6119",
             _ => throw new BuildException("FImportanceTexture copy compatibility requires a reviewed SDK source hash.")
         };
         System.Type Sha256 = System.Type.GetType("System.Security.Cryptography.SHA256, System.Security.Cryptography.Algorithms", true);
